@@ -7,7 +7,8 @@ def roulette_wheel(encodings, size=None):
 
     Args:
         encodings (pyga.encoding.Encoding): Possible parents to select from.
-        size (int): The number of offsprings in next generation. Default is None in which case it is 2 * len(encodings)
+        size (Optional[int]): The number of offsprings in next generation. Default is None in which case it is
+        2 * len(encodings).
 
     Yields:
         tuple(pyga.encoding.Encoding): a pair of parents selected from encoding

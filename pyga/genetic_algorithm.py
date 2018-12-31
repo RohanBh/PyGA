@@ -17,9 +17,9 @@ def simple_ga(encodings, generations=50, pc=0.7, pm=0.001):
         next_gen_encodings = []
 
         for parent1, parent2 in selection.roulette_wheel(encodings):
-            offspring1, offspring2 = crossover.single_point(pc, (parent1, parent2))
-            offspring1 = mutation.random_mutation(pm, offspring1)
-            offspring2 = mutation.random_mutation(pm, offspring2)
+            offspring1, offspring2 = crossover.single_point((parent1, parent2), pc)
+            offspring1 = mutation.random_bit(offspring1, pm)
+            offspring2 = mutation.random_bit(offspring2, pm)
             next_gen_encodings.append(offspring1)
             next_gen_encodings.append(offspring2)
 

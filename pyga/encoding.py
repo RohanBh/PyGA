@@ -1,6 +1,7 @@
 """The :mod:`~pyga.encoding` provides an interface to create your own encoding or use any
 of the existing ones."""
 import abc
+import collections
 import functools
 
 import numpy as np
@@ -8,12 +9,27 @@ import numpy as np
 
 @functools.total_ordering
 class Encoding(abc.ABC):
+    """Abstract class for the chromosome representation of the problem.
 
+    Attributes:
+        value (list): list/np.array that is the representation of the individual.
+        ivalue (list): list of (index, value) pairs useful for inversion.
+    """
     def __init__(self, value):
-        self.value = value
+        self._value = value
+        self.ivalue = np.array(enumerate(value))
 
     def __len__(self):
         return len(self.value)
+
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        self._value = value
+        self.ivalue = [(i, value[i]) for i, _ in enumerate(self.ivalue)]
 
     @property
     @abc.abstractmethod
