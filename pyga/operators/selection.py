@@ -118,6 +118,61 @@ def boltzmann_selection(encodings, mapping, size=None):
     """
     size, fitness_arr = _default(encodings, size)
     for i in range(size // 2):
-        temperature = mapping(T)
+        temperature = mapping(i)
         weights = np.exp(fitness_arr / temperature)
         yield tuple(np.random.choice(encodings, size=2, p=weights))
+
+
+def linear_rank_selection(encodings, max_expected_offspring=1.1):
+    """Rank selection is a strategy that ranks the individuals based on their fitness and then select them based solely
+    on their rank. It is an explorative strategy because it disregards the difference in fitness values. In this scheme,
+    the probability that an individual with rank r is selected is equal to:
+        Min + (Max - Min) * (r - 1) / (N - 1)
+    where Max is the max expected offsprings of the individual with rank 1 and similarly Min is the expected offsprings
+    of individual with rank N.
+    By normalization (sum of expectations = N) and the constraint (Max > Min > 0), we have:
+        1 <= Max <= 2 and Min = 2 - Max
+    Rank selection leads to slower convergence (because of lower selection pressure), but usually this leads to
+    more successful searches.
+    SUS is used to sample parents after the ranks have been assigned.
+    Args:
+        encodings (list[pyga.encoding.Encoding]: Possible parents.
+        max_expected_offspring (float): The expected number of offsprings of the individual with rank 1. Default is 1.1
+
+    Yields:
+        tuple(pyga.encoding.Encoding): a pair of parents selected from encoding
+    """
+    if not isinstance(encodings, np.ndarray): encodings = np.array(encodings)
+    encodings = np.sort(encodings, order='fitness')[::-1]
+    size = len(encodings)
+    _min, _max = 2 - max_expected_offspring, max_expected_offspring
+    weights = _min + (_max - _min) * (np.arange(1, size + 1) - 1) / (size - 1)
+    for encoding, weight in zip(encodings, weights):
+        encoding.fitness = weight
+    return stochastic_universal_sampling(encodings)
+
+
+def tournament_selection(encodings, selection_bias=0.75, size=None):
+    """Similar to rank selection in terms of selection pressure, but computationally more efficient. It selects two
+    individuals at random and has a match/battle between them (figuratively). Then, the fitter of the two is selected with
+    probability "selection_bias". This selection is done with replacement.
+
+    Args:
+        encodings (list[pyga.encoding.Encoding]: Possible parents.
+        selection_bias (float): The probability with which the fitter individual is selected. Default is 0.75
+        size (int): Number of offsprings needed.
+
+    Yields:
+        tuple(pyga.encoding.Encoding): a pair of parents selected from encoding
+    """
+    size, _ = _default(encodings, size)
+    prev = None
+    for i in range(size // 2):
+        en1, en2 = np.random.choice(encodings, size=2)
+        en1, en2 = (en1, en2) if en1.fitness > en2.fitness else (en2, en1)
+        selected = en1 if np.random.rand() < selection_bias else en2
+        if prev is None:
+            prev = selected
+        else:
+            yield prev, selected
+            prev = None
