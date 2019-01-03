@@ -1,10 +1,13 @@
 """The :mod:`~pyga.operators.mutation` contains different mutation strategies."""
 
+import functools
 import random
 
+import numpy as np
 from scipy import stats
 
 
+@functools.singledispatch
 def random_bit(offspring, p, inversion=False):
     """Use :func:`~pyga.operators.mutation.random_bit` to apply bit mutation operator to an offspring.
 
@@ -22,6 +25,13 @@ def random_bit(offspring, p, inversion=False):
     else:
         offspring.value[mutation_index] ^= True
     return offspring
+
+
+@random_bit.register(np.ndarray)
+def _(arr, p):
+    mutation_index = stats.bernoulli.rvs(p=p, size=len(arr)) != 0
+    arr[mutation_index] ^= True
+    return arr
 
 
 def inversion(offspring, p):

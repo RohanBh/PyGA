@@ -58,7 +58,7 @@ class BinaryEncoding(Encoding, abc.ABC):
     """An :class:`~pyga.encoding.Encoding` that is represented by a bitstring. The bitstring is a numpy boolean
     array."""
 
-    def __init__(self, value, is_value=False):
+    def __init__(self, value, is_ivalue=False):
         """Create a new Binary encoding from the values (list like).
 
         Args:
@@ -67,4 +67,21 @@ class BinaryEncoding(Encoding, abc.ABC):
         """
         if type(value) != np.ndarray:
             value = np.array(value)
+        super().__init__(value, is_ivalue)
+
+
+class EvolvingHotspotEncoding(Encoding, abc.ABC):
+    """An abstract class that uses "evolving crossover hotspots", i.e. it evolves the points where crossover occurs
+    along with the solutions. The crossover hotspots are denoted by a separate boolean array. Note that if the encoding
+    length is N then the length of crossover hotspot array will be N + 1.
+
+    Examples:
+        If :attr:`value` = [0,1,1,0] and crossover_template = [1,0,1,1,0], then crossover occurs at positions 0,
+    """
+
+    def __init__(self, value, crossover_template=None):
         super().__init__(value)
+        if crossover_template is None:
+            self.crossover_template = [False] * len(value)
+        else:
+            self.crossover_template = crossover_template
