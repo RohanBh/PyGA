@@ -62,7 +62,7 @@ def sigma_scaling(encodings, size=None):
     allowing them to evolve more.
 
     For current implementation, probability of ith individual being selected in next generation is proportional to
-    1 + (f(i) - f_mean(i))/(2*variance).
+    1 + (f(i) - f_mean(i))/(2*std_deviation).
 
     Args:
         encodings (list[pyga.encoding.Encoding]: Parents
@@ -72,7 +72,8 @@ def sigma_scaling(encodings, size=None):
         tuple(pyga.encoding.Encoding): a pair of parents selected from encoding
     """
     size, fitness_arr = _default(encodings, size)
-    weights = 1 + (fitness_arr - fitness_arr.mean()) / (2 * fitness_arr.var())
+    mean, std_dev = fitness_arr.mean(), fitness_arr.std()
+    weights = 1 + (fitness_arr - mean) / (2 * std_dev) if std_dev != 0 else 1
     weights[weights < 0] = 0.07
     for i in range(size // 2):
         yield tuple(np.random.choice(encodings, size=2, p=weights))
